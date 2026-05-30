@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Node
+node_modules/
+
+# Google / local files
+*.log
+.DS_Store
+deployment_metadata.json
+*.backup
+
+# Secrets / keys
+*.json.key
+*service-account*.json
+credentials.json
+token.json
+
+# Build artifacts
+dist/
+build/

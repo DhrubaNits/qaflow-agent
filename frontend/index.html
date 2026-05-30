@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QAFlow Agent</title>
+  <style>
+    :root {
+      --bg:#f6f7fb; --card:#fff; --text:#111827; --muted:#6b7280; --border:#e5e7eb;
+      --primary:#4f46e5; --primary2:#4338ca; --green:#059669; --red:#dc2626; --amber:#d97706;
+      --shadow:0 10px 25px rgba(17,24,39,.08);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:linear-gradient(135deg,#111827,#312e81);color:white;padding:28px 36px}
+    .wrap{max-width:1250px;margin:auto}
+    .header-row{display:flex;justify-content:space-between;gap:18px;align-items:center}
+    h1{margin:0;font-size:30px} h2{margin:0;font-size:18px} p{line-height:1.5}
+    .subtitle{color:#d1d5db;margin:8px 0 0}
+    .pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 13px;font-size:13px}
+    main{max-width:1550px;margin:26px auto;padding:0 18px;display:grid;grid-template-columns:320px minmax(420px,1fr) 430px;gap:22px;align-items:start}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}
+    .card-head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .card-body{padding:18px}
+    label{font-weight:bold;font-size:14px;display:block;margin:14px 0 6px}
+    input,textarea,select{width:100%;border:1px solid #d1d5db;border-radius:12px;padding:12px;font-size:14px}
+    textarea{min-height:108px;resize:vertical}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+    button{border:0;border-radius:12px;padding:12px 14px;font-weight:bold;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .btn-primary{background:var(--primary);color:white}.btn-primary:hover:not(:disabled){background:var(--primary2)}
+    .btn-secondary{background:#f3f4f6;color:#374151;border:1px solid var(--border)}
+    .btn-green{background:var(--green);color:white}.btn-red{background:var(--red);color:white}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+    .form-tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .model-settings{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0 16px;padding:12px;border:1px solid #c7d2fe;border-radius:14px;background:#eef2ff}
+    .model-settings label{margin:0;color:#3730a3}.model-help{font-size:12px;color:#4f46e5;line-height:1.4}
+    .review-panel{display:none;border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;background:#fff}
+    .review-panel.active{display:block}
+    .review-panel.ba{border-color:#fcd34d;background:#fffbeb}
+    .review-panel.qa{border-color:#bfdbfe;background:#eff6ff}
+    .review-panel h3{margin:0 0 8px;font-size:16px}
+    .review-panel p{margin:0 0 10px;color:#374151;font-size:13px}
+    .review-panel textarea{min-height:150px;background:white}
+    .review-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .execution-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+    .execution-panel{border:1px solid #c7d2fe;border-radius:16px;padding:14px;background:#eef2ff}
+    .execution-panel textarea{background:white;min-height:100px}
+    .download-actions{display:grid;grid-template-columns:1fr;gap:10px}
+    .note{padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.5;margin-bottom:14px}
+    .info{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe}
+    .warn{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+    .success{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+    .progress{position:sticky;top:18px}.center-panel{min-width:0}.right-panel{position:sticky;top:18px;min-width:0}.right-panel .card{margin-bottom:18px}.right-panel .output{min-height:260px;max-height:360px;overflow:auto}.right-panel .result pre{max-height:430px}.right-panel .tabs{max-height:110px;overflow:auto}
+    .metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .metric{background:#f9fafb;border:1px solid var(--border);border-radius:14px;padding:12px}
+    .metric span{display:block;color:var(--muted);font-size:12px}.metric b{font-size:20px}
+    .step{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;border:1px solid var(--border);border-radius:14px;padding:10px;margin-bottom:9px;background:#fff}
+    .step.ready{background:#eef2ff;border-color:#c7d2fe}.step.done{background:#ecfdf5;border-color:#a7f3d0}.step.locked{background:#f9fafb;color:#6b7280}
+
+    .step.rejected{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+    .rejected .num{background:var(--red);color:white}
+    .rejected .badge{background:#fee2e2;color:#991b1b}
+    .resubmit-panel{margin-top:14px;padding:14px;border-radius:14px;border:1px solid #fecaca;background:#fef2f2;color:#991b1b;display:none}
+    .resubmit-panel.active{display:block}
+    .resubmit-panel p{margin:0 0 12px;font-size:14px}
+    .num{height:30px;width:30px;border-radius:999px;background:#e5e7eb;display:grid;place-items:center;font-weight:800;font-size:12px}
+    .ready .num{background:var(--primary);color:white}.done .num{background:var(--green);color:white}
+    .st-title{font-weight:bold;font-size:13px}.st-sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .badge{font-size:11px;font-weight:800;border-radius:999px;padding:4px 9px;background:#e5e7eb;color:#374151}
+    .ready .badge{background:#dbeafe;color:#1d4ed8}.done .badge{background:#d1fae5;color:#065f46}
+    .manual-grid,.approval-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:10px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .tab{background:#f3f4f6;border:1px solid var(--border);padding:8px 10px;border-radius:999px;font-size:12px;color:#374151}
+    .tab.active{background:var(--primary);color:white;border-color:var(--primary)}
+    .result{display:none;border:1px solid var(--border);border-radius:16px;overflow:hidden}
+    .result.active{display:block}
+    .result h3{margin:0;background:#111827;color:white;padding:12px 14px;font-size:15px}
+    .result pre{margin:0;white-space:pre-wrap;line-height:1.5;background:#f9fafb;padding:15px;max-height:380px;overflow:auto;font-family:Arial,Helvetica,sans-serif;font-size:14px}
+    .output{background:#0f172a;color:#e5e7eb;border-radius:14px;padding:16px;min-height:160px;white-space:pre-wrap;line-height:1.5}
+    .loader{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:-2px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:1200px){main{grid-template-columns:300px 1fr}.right-panel{grid-column:1 / -1;position:static}.right-panel .output{max-height:none}}@media(max-width:900px){main{grid-template-columns:1fr}.progress,.right-panel{position:static}.header-row{flex-direction:column;align-items:flex-start}}
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap header-row">
+    <div>
+      <h1>QAFlow Agent</h1>
+      <p class="subtitle">Guided QA lifecycle automation with Gemini, Google ADK, and MongoDB MCP</p>
+    </div>
+    <div class="pill">MongoDB Track · Human-in-the-loop QA</div>
+  </div>
+</header>
+
+<main>
+  <aside class="card progress">
+    <div class="card-head"><h2>Workflow Progress</h2></div>
+    <div class="card-body">
+      <div class="metrics">
+        <div class="metric"><span>Completed</span><b id="completedCount">0/13</b></div>
+        <div class="metric"><span>Next Step</span><b id="nextStepNo">1</b></div>
+      </div>
+      <div id="workflowStatus"></div>
+    </div>
+  </aside>
+
+  <section class="center-panel">
+    <div class="card">
+      <div class="card-head"><h2>1. Requirement Intake</h2></div>
+      <div class="card-body">
+        <div class="note info">Enter a real requirement, or load the sample requirement for demo. QAFlow will run the workflow and pause at approval gates.</div>
+        <div class="model-settings">
+          <label for="modelSelect">Gemini Model</label>
+          <select id="modelSelect">
+            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash - Stable fallback</option>
+            <option value="gemini-3-flash-preview">Gemini 3 Flash Preview - Requires project access</option>
+            <option value="gemini-3-pro-preview">Gemini 3 Pro Preview - Requires project access</option>
+          </select>
+          <div class="model-help">Use Gemini 2.5 Flash for stable demos. Gemini 3 options are kept for hackathon alignment, but they require access in your Google Cloud project/region.</div>
+        </div>
+        <div class="form-tools">
+          <button class="btn-secondary" onclick="loadSampleRequirement()">Load Sample Requirement</button>
+          <button class="btn-secondary" onclick="clearRequirementForm()">Clear Form</button>
+        </div>
+        <label>Title</label>
+        <input id="title" placeholder="Example: Export All Report Records" />
+        <label>Requirement / User Story</label>
+        <textarea id="requirement" placeholder="Example: As a user, I want to export all report records for a selected date range so that I can download complete CSV and PDF reports."></textarea>
+        <label>Acceptance Criteria</label>
+        <textarea id="criteria" placeholder="Example:
+1. User can select a date range.
+2. CSV export includes all records for the selected date range.
+3. User should receive clear feedback if export fails."></textarea>
+        <label>Module</label>
+        <input id="module" placeholder="Example: Reports" />
+        <label>Priority</label>
+        <select id="priority"><option value="">Select priority</option><option>High</option><option>Medium</option><option>Low</option></select>
+        <div class="actions">
+          <button class="btn-primary" onclick="runCompleteWorkflow()">▶ Run / Continue QAFlow</button>
+          <button class="btn-secondary" onclick="resetWorkflow()">Reset UI State</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>2. Approval Gates</h2></div>
+      <div class="card-body">
+        <div class="note warn">Approve only after reviewing the visible outputs. QAFlow will not continue through governance gates automatically.</div>
+        <div class="approval-grid">
+          <button id="approveRequirementBtn" class="btn-green" onclick="runValidatedAction('approveRequirement')">Approve Requirement</button>
+          <button id="rejectRequirementBtn" class="btn-red" onclick="runValidatedAction('rejectRequirement')">Reject Requirement</button>
+          <button id="approveTestCasesBtn" class="btn-green" onclick="runValidatedAction('approveTestCases')">Approve Test Cases</button>
+          <button id="rejectTestCasesBtn" class="btn-red" onclick="runValidatedAction('rejectTestCases')">Reject Test Cases</button>
+          <button id="approveReleaseBtn" class="btn-green" onclick="runValidatedAction('approveRelease')">Approve Release</button>
+          <button id="rejectReleaseBtn" class="btn-red" onclick="runValidatedAction('rejectRelease')">Reject Release</button>
+        </div>
+
+        <div id="requirementResubmitPanel" class="resubmit-panel">
+          <p><b>Requirement rejected.</b> Update the requirement fields above, then resubmit it for another RAG-based gap analysis.</p>
+          <button id="resubmitRequirementBtn" class="btn-primary" onclick="resubmitUpdatedRequirement()">↻ Resubmit Updated Requirement</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>3. Human Review Recommendations</h2></div>
+      <div class="card-body">
+        <div class="note info">QAFlow can suggest editable updates for human reviewers. BA/PO can refine requirement clarifications, and QA Lead/Manager can refine test case rework notes before resubmitting.</div>
+
+        <div id="baReviewPanel" class="review-panel ba">
+          <h3>BA / Product Owner Recommendation</h3>
+          <p>Visible after requirement gap analysis or requirement rejection. Edit this recommendation, apply it to Acceptance Criteria, then resubmit the requirement.</p>
+          <label>Recommended Requirement Clarification</label>
+          <textarea id="baRecommendationText" placeholder="QAFlow recommendation for BA clarification will appear here after Requirement Gap Analysis."></textarea>
+          <div class="review-actions">
+            <button class="btn-secondary" onclick="applyBARecommendation()">Apply to Acceptance Criteria</button>
+            <button class="btn-primary" onclick="resubmitUpdatedRequirement()">Resubmit Updated Requirement</button>
+          </div>
+        </div>
+
+        <div id="qaLeadReviewPanel" class="review-panel qa">
+          <h3>QA Lead / Manager Recommendation</h3>
+          <p>Visible after test case peer review or test case rejection. Edit the recommendation, then regenerate test cases with these rework notes.</p>
+          <label>Recommended Test Case Rework Notes</label>
+          <textarea id="qaLeadRecommendationText" placeholder="QAFlow recommendation for test case improvements will appear here after Test Case Peer Review."></textarea>
+          <div class="review-actions">
+            <button class="btn-secondary" onclick="applyQATestCaseRecommendation()">Save Rework Notes</button>
+            <button class="btn-primary" onclick="regenerateTestCases()">Regenerate Test Cases</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>4. Test Execution Input</h2></div>
+      <div class="card-body">
+        <div class="note info">Choose simulated execution for demo, or enter manual execution results from QA/automation runs before running Test Execution.</div>
+        <div class="execution-panel">
+          <label>Execution Mode</label>
+          <select id="executionMode">
+            <option value="simulated" selected>Simulated Execution</option>
+            <option value="manual">Manual Execution Result</option>
+          </select>
+
+          <div class="execution-grid">
+            <div>
+              <label>Total Tests</label>
+              <input id="execTotal" type="number" min="0" placeholder="Example: 20" />
+            </div>
+            <div>
+              <label>Passed</label>
+              <input id="execPassed" type="number" min="0" placeholder="Example: 17" />
+            </div>
+            <div>
+              <label>Failed</label>
+              <input id="execFailed" type="number" min="0" placeholder="Example: 2" />
+            </div>
+            <div>
+              <label>Skipped</label>
+              <input id="execSkipped" type="number" min="0" placeholder="Example: 1" />
+            </div>
+          </div>
+
+          <label>Failure Details / Execution Notes</label>
+          <textarea id="execFailureDetails" placeholder="Example: EDI 270 timeout validation failed. Duplicate override audit log was not created."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>5. Manual Advanced Actions</h2></div>
+      <div class="card-body">
+        <div class="note info">Optional. Actions are locked until prerequisite steps are complete.</div>
+        <div id="manualButtons" class="manual-grid"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <aside class="right-panel">
+    <div class="card">
+      <div class="card-head"><h2>Current Agent Output</h2></div>
+      <div class="card-body">
+        <div id="output" class="output">Click “Run / Continue QAFlow” to start.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Workflow Results</h2>
+        <button class="btn-secondary" onclick="downloadFinalQaReportPdf()">Download QA Report PDF</button>
+      </div>
+      <div class="card-body">
+        <div id="resultTabs" class="tabs"></div>
+        <div id="stepResults"></div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script>
+const workflowSteps = [
+  {key:"saveRequirement",label:"Save Requirement",requires:null,completes:"requirement_saved"},
+  {key:"requirementGapAnalysis",label:"Requirement Gap Analysis",requires:"requirement_saved",completes:"requirement_gap_analyzed",stopAfter:true,stopMessage:"Requirement gap analysis is complete. Review the result, then approve or reject the requirement."},
+  {key:"understandRequirement",label:"Requirement Understanding",requires:"requirement_approved",completes:"requirement_analyzed"},
+  {key:"generateScenarios",label:"Generate Test Scenarios",requires:"requirement_analyzed",completes:"scenarios_generated"},
+  {key:"writeTestCases",label:"Write Test Cases",requires:"scenarios_generated",completes:"test_cases_created"},
+  {key:"peerReviewTestCases",label:"Test Case Peer Review",requires:"test_cases_created",completes:"test_cases_reviewed",stopAfter:true,stopMessage:"Test case peer review is complete. Review the result, then approve or reject the test cases."},
+  {key:"riskCoverage",label:"Risk & Coverage",requires:"test_cases_approved",completes:"risk_analyzed"},
+  {key:"executeTests",label:"Test Execution",requires:"risk_analyzed",completes:"tests_executed"},
+  {key:"triageFailures",label:"Failure Triage",requires:"tests_executed",completes:"failures_triaged"},
+  {key:"recommendFix",label:"Fix Recommendation",requires:"failures_triaged",completes:"fix_recommended"},
+  {key:"releaseReadiness",label:"Release Readiness",requires:"fix_recommended",completes:"release_readiness_done"},
+  {key:"qaReport",label:"Final QA Report",requires:"release_readiness_done",completes:"qa_report_generated"},
+  {key:"approvalRequest",label:"Release Approval Request",requires:"qa_report_generated",completes:"approval_requested",stopAfter:true,stopMessage:"QA report is ready. Review the report, then approve or reject the release."}
+];
+
+const approvalActions = {
+  approveRequirement:{label:"Approve Requirement",requires:"requirement_gap_analyzed",completes:"requirement_approved"},
+  rejectRequirement:{label:"Reject Requirement",requires:"requirement_gap_analyzed",completes:"requirement_rejected"},
+  approveTestCases:{label:"Approve Test Cases",requires:"test_cases_reviewed",completes:"test_cases_approved"},
+  rejectTestCases:{label:"Reject Test Cases",requires:"test_cases_reviewed",completes:"test_cases_rejected"},
+  approveRelease:{label:"Approve Release",requires:"approval_requested",completes:"release_approved"},
+  rejectRelease:{label:"Reject Release",requires:"approval_requested",completes:"release_rejected"}
+};
+
+let state = JSON.parse(localStorage.getItem("qaflow_state") || "{}");
+
+function loadSampleRequirement(){
+  document.getElementById("title").value = "Export All Report Records";
+  document.getElementById("requirement").value = "As a user, I want to export all report records for a selected date range so that I can download complete CSV and PDF reports, not only the first 300 records.";
+  document.getElementById("criteria").value = "1. User can select a date range.\n2. CSV export includes all records for the selected date range.\n3. PDF export includes all records for the selected date range.\n4. Export should not be limited to the first 300 records.\n5. User should receive clear feedback if export fails.";
+  document.getElementById("module").value = "Reports";
+  document.getElementById("priority").value = "High";
+  show("Sample requirement loaded. Click Run / Continue QAFlow to start.");
+}
+
+function clearRequirementForm(){
+  if(!confirm("Clear the requirement form? Workflow state and MongoDB records will not be deleted.")) return;
+  document.getElementById("title").value = "";
+  document.getElementById("requirement").value = "";
+  document.getElementById("criteria").value = "";
+  document.getElementById("module").value = "";
+  document.getElementById("priority").value = "";
+  show("Requirement form cleared. Enter a new requirement or load the sample requirement.");
+}
+
+function validateRequirementForm(){
+  const v = getValues();
+  const missing = [];
+  if(!v.title.trim()) missing.push("Title");
+  if(!v.requirement.trim()) missing.push("Requirement / User Story");
+  if(!v.criteria.trim()) missing.push("Acceptance Criteria");
+  if(!v.module.trim()) missing.push("Module");
+  if(!v.priority.trim()) missing.push("Priority");
+  if(missing.length){
+    show("Please complete these fields before running QAFlow:\n- " + missing.join("\n- "));
+    return false;
+  }
+  return true;
+}
+
+function saveState(){localStorage.setItem("qaflow_state",JSON.stringify(state));renderWorkflow();renderStepResults();}
+function isComplete(flag){return Boolean(state[flag]);}
+function canRun(step){return !step.requires || isComplete(step.requires);}
+function getValues(){return {
+  title:document.getElementById("title").value,
+  requirement:document.getElementById("requirement").value,
+  criteria:document.getElementById("criteria").value,
+  module:document.getElementById("module").value,
+  priority:document.getElementById("priority").value
+};}
+
+function getExecutionValues(){return {
+  mode:document.getElementById("executionMode")?.value || "simulated",
+  total:document.getElementById("execTotal")?.value || "",
+  passed:document.getElementById("execPassed")?.value || "",
+  failed:document.getElementById("execFailed")?.value || "",
+  skipped:document.getElementById("execSkipped")?.value || "",
+  failureDetails:document.getElementById("execFailureDetails")?.value || ""
+};}
+
+function getSelectedModel(){
+  const el = document.getElementById("modelSelect");
+  return el && el.value ? el.value : "gemini-2.5-flash";
+}
+
+function saveStepResult(key,label,result){
+  const r=JSON.parse(localStorage.getItem("qaflow_results")||"{}");
+  r[key]={label,result};
+  localStorage.setItem("qaflow_results",JSON.stringify(r));
+  populateHumanRecommendations(key, result);
+  renderStepResults(key);
+}
+
+function resetWorkflow(){
+  if(!confirm("Reset UI workflow state? MongoDB records will not be deleted.")) return;
+  state={}; localStorage.removeItem("qaflow_results"); localStorage.removeItem("qaflow_test_case_rework_notes"); saveState();
+  const ba=document.getElementById("baRecommendationText"); if(ba) ba.value="";
+  const qa=document.getElementById("qaLeadRecommendationText"); if(qa) qa.value="";
+  document.getElementById("output").innerText="Workflow state reset. Click Run / Continue QAFlow to start.";
+}
+
+function buildPrompt(action){
+  const v=getValues();
+  const execution=getExecutionValues();
+  const p={
+saveRequirement:`Save this requirement into qaflow.qa_analyses as a requirement document:
+
+Title: ${v.title}
+
+Requirement:
+${v.requirement}
+
+Acceptance Criteria:
+${v.criteria}
+
+Module: ${v.module}
+Priority: ${v.priority}`,
+
+requirementGapAnalysis:`Use the CURRENT requirement details from the UI as the primary source of truth for this gap analysis.
+
+Current Title:
+${v.title}
+
+Current Requirement:
+${v.requirement}
+
+Current Acceptance Criteria and Clarifications:
+${v.criteria}
+
+Current Module:
+${v.module}
+
+Current Priority:
+${v.priority}
+
+Also retrieve the latest requirement_revision and requirement documents from qaflow.qa_analyses only as supporting history. Do not use older MongoDB requirement records as the primary source if the current UI content has been updated.
+
+Act as the Requirement Gap Analysis Agent.
+
+Before doing gap analysis, retrieve relevant qa_knowledge records from qaflow.qa_analyses where:
+type is qa_knowledge
+and module is either general or matches the current module: ${v.module}.
+
+Use those QA knowledge records as RAG context.
+
+Also retrieve previous similar requirement_gap_analysis, test_cases, failure_triage, fix_recommendation, release_summary, and qa_report records from the same module when available.
+
+Perform requirement gap analysis and save one compact requirement_gap_analysis document into qaflow.qa_analyses.
+
+Include:
+gap_status,
+missing_details,
+clarifying_questions,
+risk_if_not_clarified,
+qa_readiness_recommendation,
+similar_historical_findings,
+recommended_ba_update,
+created_by.
+
+The gap analysis must explicitly compare the CURRENT requirement against:
+1. QA Definition of Ready
+2. Requirement Gap Checklist
+3. Module-specific QA rules
+4. Historical failure patterns
+5. Test design standards
+
+For Reports module export requirements, specifically check:
+- export beyond UI pagination
+- 300-record limit risk
+- backend count versus exported count
+- CSV/PDF completeness
+- large dataset performance
+- failed export handling
+- filter/reset impact
+
+For Clinics / patient profile requirements, specifically check:
+- HIPAA/privacy handling
+- mandatory demographic validation
+- duplicate patient matching behavior
+- Continue Anyway override behavior
+- EDI 270 failure and timeout behavior
+- audit logging
+- role/access control
+- performance expectations
+- test data requirements
+
+Important:
+If the CURRENT Acceptance Criteria and Clarifications already provide validation rules, error messages, EDI 270 timeout/failure behavior, performance expectations, audit logging, duplicate override behavior, and HIPAA/privacy expectations, do not list those same items as missing.
+Only list remaining gaps that are truly not covered by the current UI requirement text.
+If most QA readiness items are covered, set gap_status as Ready or Ready with Minor Clarifications instead of Needs Clarification.
+
+After saving the requirement_gap_analysis document, always return a human-readable summary in this format:
+
+Requirement Gap Analysis Completed
+
+Gap Status:
+...
+
+Key Findings:
+...
+
+Clarifying Questions:
+...
+
+QA Readiness Recommendation:
+...
+
+Recommended BA Update:
+Provide BA-editable clarification text that can be pasted directly into the Acceptance Criteria. Include concrete Given/When/Then updates, validation rules, error messages, performance/audit/security expectations, and edge cases only when they are actually missing.
+
+Next Action:
+If gap_status is Ready or Ready with Minor Clarifications, ask the user to Approve Requirement.
+If gap_status is Needs Clarification, ask the user to Reject Requirement and update the requirement.`,
+
+resubmitRequirement:`Save this updated requirement into qaflow.qa_analyses as a requirement_revision document after requirement rejection.
+
+Title: ${v.title}
+
+Updated Requirement:
+${v.requirement}
+
+Updated Acceptance Criteria:
+${v.criteria}
+
+Module: ${v.module}
+Priority: ${v.priority}
+Revision Reason: Requirement updated after QA gap analysis rejection
+Status: resubmitted
+Created By: qaflow_agent
+
+After saving, state that the requirement has been resubmitted and is ready for requirement gap analysis again.`,
+approveRequirement:`Save a requirement approval decision into qaflow.qa_analyses.
+
+Use these fields:
+type: requirement_approval
+title: ${v.title}
+approval_status: approved
+approved: true
+reason: Human reviewer approved the requirement to proceed after reviewing gap analysis
+approved_by: human_reviewer
+created_by: qaflow_agent`,
+
+rejectRequirement:`Save a requirement approval decision into qaflow.qa_analyses.
+
+Use these fields:
+type: requirement_approval
+title: ${v.title}
+approval_status: rejected
+approved: false
+reason: Human reviewer rejected the requirement because gaps must be clarified before QA design
+approved_by: human_reviewer
+created_by: qaflow_agent`,
+
+understandRequirement:`Find the latest approved requirement document from qaflow.qa_analyses.
+
+Act as the Requirement Understanding Agent.
+
+Analyze the requirement and save a compact requirement_analysis document into qaflow.qa_analyses.
+
+Include:
+business_intent,
+functional_scope,
+impacted_areas,
+dependencies,
+assumptions,
+clarifying_questions,
+acceptance_criteria_summary,
+risk_notes,
+created_by.`,
+
+generateScenarios:`Find the latest requirement_analysis document from qaflow.qa_analyses.
+
+Act as the Test Scenario Generation Agent.
+
+Before generating scenarios, retrieve relevant qa_knowledge records and previous similar QA records from qaflow.qa_analyses when available.
+
+Generate test scenarios and save one compact test_scenarios document into qaflow.qa_analyses.
+
+Use similar historical MongoDB records as RAG-style context if available.
+
+Include:
+positive_scenarios,
+negative_scenarios,
+boundary_scenarios,
+regression_scenarios,
+performance_scenarios,
+error_handling_scenarios,
+historical_rag_notes,
+priority,
+created_by.
+
+After saving the test_scenarios document, always return the generated scenarios in this format:
+
+Test Scenario Generation Completed
+
+Positive Scenarios:
+...
+
+Negative Scenarios:
+...
+
+Boundary Scenarios:
+...
+
+Regression Scenarios:
+...
+
+Performance Scenarios:
+...
+
+Error Handling Scenarios:
+...
+
+Historical RAG Notes:
+...
+
+Current Status:
+Test scenarios are ready.
+
+Next Action:
+Proceed to Write Test Cases.`,
+
+writeTestCases:`Find the latest test_scenarios document from qaflow.qa_analyses.
+
+Act as the Test Case Writing Agent.
+
+Generate concise test cases and save one compact test_cases document into qaflow.qa_analyses.
+
+Include:
+functional_test_cases,
+negative_test_cases,
+boundary_test_cases,
+regression_test_cases,
+performance_test_cases,
+priority,
+created_by.
+
+Each test case should include:
+test case ID, title, precondition, test data, steps, expected result, and priority.
+
+After saving the test_cases document, always return the generated test cases in this format:
+
+Test Case Writing Completed
+
+Functional Test Cases:
+...
+
+Negative Test Cases:
+...
+
+Boundary Test Cases:
+...
+
+Regression Test Cases:
+...
+
+Performance Test Cases:
+...
+
+Current Status:
+Test cases are ready for peer review.
+
+Next Action:
+Proceed to Test Case Peer Review.`,
+
+peerReviewTestCases:`Find the latest requirement, requirement_analysis, test_scenarios, and test_cases documents from qaflow.qa_analyses.
+
+Act as the Test Case Peer Review Agent.
+
+Before reviewing, retrieve relevant qa_knowledge records where type is qa_knowledge and module is either general or matches the requirement module.
+
+Review the generated test cases and save one compact test_case_peer_review document into qaflow.qa_analyses.
+
+Include:
+review_status,
+coverage_findings,
+missing_test_cases,
+duplicate_or_weak_cases,
+expected_result_quality,
+priority_review,
+peer_review_recommendation,
+recommended_test_case_update,
+created_by.
+
+After saving the test_case_peer_review document, always return the review in this format:
+
+Test Case Peer Review Completed
+
+Review Status:
+...
+
+Coverage Findings:
+...
+
+Missing Test Cases:
+...
+
+Duplicate or Weak Cases:
+...
+
+Expected Result Quality:
+...
+
+Priority Review:
+...
+
+Peer Review Recommendation:
+...
+
+QA Lead Recommended Test Case Update:
+Provide QA Lead-editable rework notes. Include missing test cases to add, weak/duplicate cases to improve, expected result improvements, required test data, and priority changes. These notes must be usable to regenerate the test cases.
+
+Next Action:
+If review_status is Approved or Ready with Minor Suggestions, ask the user to Approve Test Cases.
+If review_status is Changes Required, ask the user to Reject Test Cases and update/regenerate test cases.`,
+
+regenerateTestCases:`Find the latest test_scenarios, test_cases, and test_case_peer_review documents from qaflow.qa_analyses.
+
+Act as the Test Case Rework Agent.
+
+Use the QA Lead / Manager rework notes below as human-approved guidance:
+${localStorage.getItem("qaflow_test_case_rework_notes") || "No explicit QA Lead rework notes were provided. Use the latest peer review findings."}
+
+Regenerate improved concise test cases and save one compact test_cases document into qaflow.qa_analyses.
+
+Include:
+functional_test_cases,
+negative_test_cases,
+boundary_test_cases,
+regression_test_cases,
+performance_test_cases,
+rework_notes_applied,
+priority,
+created_by.
+
+Each test case should include:
+test case ID, title, precondition, test data, steps, expected result, and priority.
+
+After saving the updated test_cases document, always return the regenerated test cases in this format:
+
+Test Case Regeneration Completed
+
+Rework Notes Applied:
+...
+
+Functional Test Cases:
+...
+
+Negative Test Cases:
+...
+
+Boundary Test Cases:
+...
+
+Regression Test Cases:
+...
+
+Performance Test Cases:
+...
+
+Current Status:
+Updated test cases are ready for peer review again.
+
+Next Action:
+Proceed to Test Case Peer Review.`,
+
+approveTestCases:`Save a test case approval decision into qaflow.qa_analyses.
+
+Use these fields:
+type: test_case_approval
+title: ${v.title}
+approval_status: approved
+approved: true
+reason: QA lead approved test cases for execution after peer review
+approved_by: qa_lead
+created_by: qaflow_agent`,
+
+rejectTestCases:`Save a test case approval decision into qaflow.qa_analyses.
+
+Use these fields:
+type: test_case_approval
+title: ${v.title}
+approval_status: rejected
+approved: false
+reason: QA lead rejected test cases because peer review findings must be addressed
+approved_by: qa_lead
+created_by: qaflow_agent`,
+
+riskCoverage:`Find the latest approved test_cases and test_case_peer_review documents from qaflow.qa_analyses.
+
+Act as the Risk & Coverage Agent.
+
+Analyze risk and coverage, then save one compact risk_coverage document into qaflow.qa_analyses.
+
+Include:
+overall_risk,
+high_risk_areas,
+coverage_summary,
+coverage_gaps,
+must_run_tests,
+recommended_test_priority,
+release_risk_notes,
+created_by.`,
+
+executeTests:`Find the latest risk_coverage and approved test_case_approval documents from qaflow.qa_analyses.
+
+Act as the Test Execution Agent.
+
+Execution mode selected by user: ${execution.mode}
+
+Manual execution result entered by user:
+Total tests: ${execution.total || "Not provided"}
+Passed tests: ${execution.passed || "Not provided"}
+Failed tests: ${execution.failed || "Not provided"}
+Skipped tests: ${execution.skipped || "Not provided"}
+Failure details / execution notes:
+${execution.failureDetails || "Not provided"}
+
+If execution mode is manual:
+- Use the manual execution numbers and failure details provided above as the source of truth.
+- Do not invent different pass/fail counts.
+- Save one compact test_execution document using execution_mode as manual.
+
+If execution mode is simulated:
+- Simulate realistic execution results for the must-run tests from risk_coverage.
+- Save one compact test_execution document using execution_mode as simulated.
+
+Include:
+execution_mode,
+total_tests,
+passed_tests,
+failed_tests,
+skipped_tests,
+failed_test_details,
+execution_summary,
+execution_status,
+created_by.
+
+After saving the test_execution document, always return the execution result in this format:
+
+Test Execution Completed
+
+Execution Mode:
+...
+
+Total Tests:
+...
+
+Passed Tests:
+...
+
+Failed Tests:
+...
+
+Skipped Tests:
+...
+
+Failed Test Details:
+...
+
+Execution Status:
+...
+
+Execution Summary:
+...
+
+Next Action:
+Proceed to Failure Triage if there are failed tests, otherwise proceed to Release Readiness.`,
+
+triageFailures:`Find the latest test_execution document from qaflow.qa_analyses.
+
+Act as the Failure Triage Agent.
+
+Analyze the failed tests and save one compact failure_triage document into qaflow.qa_analyses.
+
+Include:
+failed_tests,
+failure_category,
+probable_root_cause,
+severity,
+recommended_owner,
+triage_summary,
+created_by.`,
+
+recommendFix:`Find the latest failure_triage document from qaflow.qa_analyses.
+
+Act as the Fix Recommendation Agent.
+
+Recommend the fix direction and save one compact fix_recommendation document into qaflow.qa_analyses.
+
+Use previous similar MongoDB fix recommendations as RAG-style context if available.
+
+Include:
+failure_summary,
+recommended_fix,
+technical_direction,
+validation_needed,
+recommended_owner,
+fix_priority,
+created_by.`,
+
+releaseReadiness:`Find the latest requirement, requirement_analysis, risk_coverage, test_execution, failure_triage, and fix_recommendation documents from qaflow.qa_analyses.
+
+Act as the Release Readiness Agent.
+
+Generate release readiness and save one compact release_summary document into qaflow.qa_analyses.
+
+Include:
+overall_release_risk,
+high_risk_areas,
+must_run_tests,
+possible_release_blockers,
+final_recommendation,
+human_approval_required,
+created_by.`,
+
+qaReport:`Find the latest records from qaflow.qa_analyses for:
+requirement,
+requirement_gap_analysis,
+requirement_approval,
+requirement_analysis,
+test_scenarios,
+test_cases,
+test_case_peer_review,
+test_case_approval,
+risk_coverage,
+test_execution,
+failure_triage,
+fix_recommendation,
+release_summary.
+
+Act as the Final QA Report Agent.
+
+Generate one compact final QA report and save it into qaflow.qa_analyses.
+
+Include:
+requirement_summary,
+requirement_gap_summary,
+requirement_approval_summary,
+scenario_summary,
+test_case_summary,
+test_case_peer_review_summary,
+test_case_approval_summary,
+risk_coverage_summary,
+execution_summary,
+failure_triage_summary,
+fix_recommendation_summary,
+release_readiness,
+final_qa_signoff,
+created_by.`,
+
+approvalRequest:`Based on the latest qa_report and release_summary in qaflow.qa_analyses, prepare a human release approval request.
+
+Include:
+1. Current release risk
+2. Final recommendation
+3. What must be verified before approval
+4. Ask clearly: Do you approve marking this release as ready?`,
+
+approveRelease:`Save a release approval decision into qaflow.qa_analyses.
+
+Use these fields:
+type: human_approval
+release_area: ${v.title}
+approval_status: approved
+approved: true
+reason: Human reviewer approved release readiness after validating required QA checks
+risk_level: High
+approved_by: human_reviewer
+created_by: qaflow_agent`,
+
+rejectRelease:`Save a release approval decision into qaflow.qa_analyses.
+
+Use these fields:
+type: human_approval
+release_area: ${v.title}
+approval_status: rejected
+approved: false
+reason: Human reviewer rejected release readiness because required QA checks are not fully complete
+risk_level: High
+approved_by: human_reviewer
+created_by: qaflow_agent`
+  };
+  return p[action];
+}
+
+async function callAgent(prompt, action){
+  const enhancedPrompt = `${prompt}
+
+Important response instruction:
+After completing the MongoDB action, always return a human-readable response.
+Do not stay silent.
+The response must include:
+1. What action was completed
+2. What document type was saved or analyzed
+3. The main generated content, not only a short confirmation
+4. Current status or recommendation
+5. Next suggested user action
+
+If the action generated test scenarios, return the actual scenario groups.
+If the action generated test cases, return the actual test cases.
+If the action performed peer review, return the actual review findings.`;
+
+  const res=await fetch("/api/run",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt: enhancedPrompt, model: getSelectedModel()})
+  });
+
+  const data=await res.json();
+  if(!data.success) throw new Error(data.error+"\\n\\n"+data.details);
+
+  let response = data.response || "";
+  const noText =
+    response.includes("Agent completed the action, but no text response was returned") ||
+    response.trim().length < 20;
+
+  if(noText && action === "requirementGapAnalysis"){
+    response = await fetchLatestGeneratedDocument("requirement_gap_analysis", "Requirement Gap Analysis");
+  }
+
+  if(noText && action === "understandRequirement"){
+    response = await fetchLatestGeneratedDocument("requirement_analysis", "Requirement Understanding");
+  }
+
+  if(noText && action === "generateScenarios"){
+    response = await fetchLatestGeneratedDocument("test_scenarios", "Generate Test Scenarios");
+  }
+
+  if(noText && (action === "writeTestCases" || action === "regenerateTestCases")){
+    response = await fetchLatestGeneratedDocument(
+      "test_cases",
+      action === "regenerateTestCases" ? "Regenerate Test Cases" : "Write Test Cases"
+    );
+  }
+
+  if(noText && action === "peerReviewTestCases"){
+    response = await fetchLatestGeneratedDocument("test_case_peer_review", "Test Case Peer Review");
+  }
+
+  if(noText && action === "riskCoverage"){
+    response = await fetchLatestGeneratedDocument("risk_coverage", "Risk & Coverage");
+  }
+
+  if(noText && action === "executeTests"){
+    response = await fetchLatestGeneratedDocument("test_execution", "Test Execution");
+  }
+
+  if(noText && action === "triageFailures"){
+    response = await fetchLatestGeneratedDocument("failure_triage", "Failure Triage");
+  }
+
+  if(noText && action === "recommendFix"){
+    response = await fetchLatestGeneratedDocument("fix_recommendation", "Fix Recommendation");
+  }
+
+  if(noText && action === "releaseReadiness"){
+    response = await fetchLatestGeneratedDocument("release_summary", "Release Readiness");
+  }
+
+  if(noText && action === "qaReport"){
+    response = await fetchLatestGeneratedDocument("qa_report", "Final QA Report");
+  }
+
+  return response;
+}
+
+async function fetchLatestGeneratedDocument(documentType, label){
+  const prompt = `Find the latest document from qaflow.qa_analyses where type is ${documentType}.
+
+Return the full human-readable content for the UI.
+
+Format the response like this:
+
+${label} Retrieved
+
+Document Type:
+${documentType}
+
+Content:
+Return all important fields from the latest ${documentType} document in readable QA format.
+
+Next Action:
+Tell the user what to do next.`;
+
+  const res=await fetch("/api/run",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt, model: getSelectedModel()})
+  });
+
+  const data=await res.json();
+  if(!data.success) throw new Error(data.error+"\\n\\n"+data.details);
+
+  return data.response || `${label} was saved, but the latest document could not be displayed.`;
+}
+
+
+function extractSection(text, startLabel, stopLabels){
+  const source = String(text || "");
+  const start = source.toLowerCase().indexOf(startLabel.toLowerCase());
+  if(start === -1) return "";
+  let body = source.slice(start + startLabel.length).replace(/^[:\s*#-]+/, "").trim();
+  let endIndex = body.length;
+  for(const label of stopLabels){
+    const idx = body.toLowerCase().indexOf(label.toLowerCase());
+    if(idx >= 0 && idx < endIndex) endIndex = idx;
+  }
+  return body.slice(0, endIndex).trim();
+}
+
+function populateHumanRecommendations(key, result){
+  if(key === "requirementGapAnalysis"){
+    const baText = extractSection(result, "Recommended BA Update", ["Next Action", "Current Status", "Requirement Gap Analysis Completed"]);
+    if(baText){
+      const el = document.getElementById("baRecommendationText");
+      if(el) el.value = baText;
+    }
+  }
+
+  if(key === "peerReviewTestCases"){
+    const qaText = extractSection(result, "QA Lead Recommended Test Case Update", ["Next Action", "Current Status", "Test Case Peer Review Completed"]);
+    if(qaText){
+      const el = document.getElementById("qaLeadRecommendationText");
+      if(el) el.value = qaText;
+      localStorage.setItem("qaflow_test_case_rework_notes", qaText);
+    }
+  }
+
+  renderHumanReviewPanels();
+}
+
+function applyBARecommendation(){
+  const rec = (document.getElementById("baRecommendationText")?.value || "").trim();
+  if(!rec) return show("No BA recommendation is available to apply yet.");
+  const criteria = document.getElementById("criteria");
+  const existing = criteria.value.trim();
+  const addition = "Additional BA Clarifications:\\n" + rec;
+  criteria.value = existing ? existing + "\\n\\n" + addition : addition;
+  show("BA recommendation applied to Acceptance Criteria. Review/edit it, then click Resubmit Updated Requirement.");
+}
+
+function applyQATestCaseRecommendation(){
+  const rec = (document.getElementById("qaLeadRecommendationText")?.value || "").trim();
+  if(!rec) return show("No QA Lead recommendation is available to save yet.");
+  localStorage.setItem("qaflow_test_case_rework_notes", rec);
+  show("QA Lead rework notes saved. Click Regenerate Test Cases to update the test cases using these notes.");
+}
+
+async function regenerateTestCases(){
+  if(!isComplete("test_cases_rejected") && !isComplete("test_cases_reviewed")){
+    return show("Regenerate Test Cases is available after test case peer review or test case rejection.");
+  }
+  if(!validateRequirementForm()) return;
+
+  applyQATestCaseRecommendation();
+
+  try{
+    document.getElementById("output").innerHTML="<span class='loader'></span>Regenerating test cases with QA Lead notes...";
+    const result=await callAgent(buildPrompt("regenerateTestCases"), "regenerateTestCases");
+
+    state.scenarios_generated = true;
+    state.test_cases_created = true;
+    delete state.test_cases_reviewed;
+    delete state.test_cases_approved;
+    delete state.test_cases_rejected;
+    delete state.risk_analyzed;
+    delete state.tests_executed;
+    delete state.failures_triaged;
+    delete state.fix_recommended;
+    delete state.release_readiness_done;
+    delete state.qa_report_generated;
+    delete state.approval_requested;
+    delete state.release_approved;
+    delete state.release_rejected;
+
+    saveState();
+    saveStepResult("writeTestCases","Regenerate Test Cases",result);
+    show("Completed: Regenerate Test Cases\\n\\n" + result + "\\n\\nNext: Run Test Case Peer Review again.");
+  }catch(e){
+    show("Error while regenerating test cases:\\n\\n"+e.message);
+  }
+}
+
+function renderHumanReviewPanels(){
+  const baPanel = document.getElementById("baReviewPanel");
+  const qaPanel = document.getElementById("qaLeadReviewPanel");
+
+  if(baPanel){
+    const showBA = isComplete("requirement_gap_analyzed") || isComplete("requirement_rejected");
+    baPanel.className = "review-panel ba" + (showBA ? " active" : "");
+  }
+
+  if(qaPanel){
+    const showQA = isComplete("test_cases_reviewed") || isComplete("test_cases_rejected");
+    qaPanel.className = "review-panel qa" + (showQA ? " active" : "");
+  }
+}
+
+async function resubmitUpdatedRequirement(){
+  if(!isComplete("requirement_rejected")) return show("Resubmit is available only after requirement rejection.");
+  if(!validateRequirementForm()) return;
+
+  try{
+    document.getElementById("output").innerHTML="<span class='loader'></span>Resubmitting updated requirement...";
+    const result=await callAgent(buildPrompt("resubmitRequirement"), "resubmitRequirement");
+
+    // Keep original requirement history in MongoDB, but reset this browser workflow from the gap-analysis point.
+    state.requirement_saved = true;
+    delete state.requirement_gap_analyzed;
+    delete state.requirement_rejected;
+    delete state.requirement_approved;
+    delete state.requirement_analyzed;
+    delete state.scenarios_generated;
+    delete state.test_cases_created;
+    delete state.test_cases_reviewed;
+    delete state.test_cases_approved;
+    delete state.test_cases_rejected;
+    delete state.risk_analyzed;
+    delete state.tests_executed;
+    delete state.failures_triaged;
+    delete state.fix_recommended;
+    delete state.release_readiness_done;
+    delete state.qa_report_generated;
+    delete state.approval_requested;
+    delete state.release_approved;
+    delete state.release_rejected;
+
+    saveState();
+    saveStepResult("resubmitRequirement","Resubmit Updated Requirement",result);
+    show("Completed: Resubmit Updated Requirement\n\n" + result + "\n\nNext: Run Requirement Gap Analysis again.");
+  }catch(e){
+    show("Error while resubmitting requirement:\n\n"+e.message);
+  }
+}
+
+async function runValidatedAction(action){
+  let step=workflowSteps.find(s=>s.key===action);
+  if(!step && approvalActions[action]) step={key:action,label:approvalActions[action].label,requires:approvalActions[action].requires,completes:approvalActions[action].completes};
+  if(!step) return show("Unknown action: "+action);
+  if(action !== "rejectRequirement" && action !== "rejectTestCases" && action !== "rejectRelease" && !validateRequirementForm()) return;
+  if(!canRun(step)) return show("This step is locked. Complete the previous requirement first: "+step.requires);
+
+  try{
+    document.getElementById("output").innerHTML="<span class='loader'></span>Running: "+step.label;
+    const result=await callAgent(buildPrompt(action), action);
+    state[step.completes]=true; saveState(); saveStepResult(step.key,step.label,result);
+    show("Completed: "+step.label+"\\n\\n"+result);
+  }catch(e){show("Error while running "+step.label+":\\n\\n"+e.message);}
+}
+
+async function runCompleteWorkflow(){
+  if(!validateRequirementForm()) return;
+  document.getElementById("output").innerHTML="<span class='loader'></span>Starting QAFlow workflow...";
+  for(const step of workflowSteps){
+    if(isComplete(step.completes)) continue;
+    if(!canRun(step)) return show("Workflow paused. Complete this required gate first: "+step.requires);
+    try{
+      document.getElementById("output").innerHTML="<span class='loader'></span>Running: "+step.label;
+      const result=await callAgent(buildPrompt(step.key), step.key);
+      state[step.completes]=true; saveState(); saveStepResult(step.key,step.label,result);
+      if(step.stopAfter) return show(step.stopMessage);
+    }catch(e){return show("Workflow stopped at "+step.label+":\\n\\n"+e.message);}
+  }
+  show("QAFlow workflow finished. Review results and complete release approval.");
+}
+
+function show(text){document.getElementById("output").innerText=text;}
+
+function renderWorkflow(){
+  const s=document.getElementById("workflowStatus"), m=document.getElementById("manualButtons");
+  s.innerHTML=""; m.innerHTML="";
+  let done=0,next="-";
+  workflowSteps.forEach((step,i)=>{
+    const completed=isComplete(step.completes), ready=canRun(step);
+    const rejected =
+      (step.key === "understandRequirement" && isComplete("requirement_rejected")) ||
+      (step.key === "riskCoverage" && isComplete("test_cases_rejected")) ||
+      (step.key === "approvalRequest" && isComplete("release_rejected"));
+
+    if(completed) done++; if(!completed && next==="-") next=i+1;
+
+    const row=document.createElement("div");
+    row.className="step "+(rejected?"rejected":completed?"done":ready?"ready":"locked");
+
+    const statusText = rejected ? "Rejected by human reviewer" : completed ? "Completed" : ready ? "Ready to run" : "Waiting for "+step.requires;
+    const badgeText = rejected ? "Rejected" : completed ? "Done" : ready ? "Ready" : "Locked";
+
+    row.innerHTML=`<div class="num">${rejected?"✕":completed?"✓":i+1}</div><div><div class="st-title">${step.label}</div><div class="st-sub">${statusText}</div></div><span class="badge">${badgeText}</span>`;
+    s.appendChild(row);
+
+    const btn=document.createElement("button");
+    btn.className=ready&&!completed&&!rejected?"btn-primary":"btn-secondary";
+    btn.innerText=(i+1)+". "+step.label;
+    btn.disabled=!ready||completed||rejected;
+    btn.onclick=()=>runValidatedAction(step.key);
+    m.appendChild(btn);
+  });
+  document.getElementById("completedCount").innerText=done+"/"+workflowSteps.length;
+  document.getElementById("nextStepNo").innerText=next;
+  setGate("approveRequirementBtn","requirement_gap_analyzed","requirement_approved","requirement_rejected");
+  setGate("rejectRequirementBtn","requirement_gap_analyzed","requirement_approved","requirement_rejected");
+  setGate("approveTestCasesBtn","test_cases_reviewed","test_cases_approved","test_cases_rejected");
+  setGate("rejectTestCasesBtn","test_cases_reviewed","test_cases_approved","test_cases_rejected");
+  setGate("approveReleaseBtn","approval_requested","release_approved","release_rejected");
+  setGate("rejectReleaseBtn","approval_requested","release_approved","release_rejected");
+
+  const resubmitPanel=document.getElementById("requirementResubmitPanel");
+  if(resubmitPanel){
+    resubmitPanel.className="resubmit-panel"+(isComplete("requirement_rejected")?" active":"");
+  }
+  renderHumanReviewPanels();
+}
+
+function setGate(id,pre,a,r){document.getElementById(id).disabled=!isComplete(pre)||isComplete(a)||isComplete(r);}
+
+function renderStepResults(activeKey){
+  const tabs=document.getElementById("resultTabs"), out=document.getElementById("stepResults");
+  const all=JSON.parse(localStorage.getItem("qaflow_results")||"{}");
+  const keys=workflowSteps.map(x=>x.key).concat(["resubmitRequirement"]).concat(Object.keys(approvalActions)).filter(k=>all[k]);
+  tabs.innerHTML=""; out.innerHTML="";
+  if(!keys.length){out.innerHTML="<p class='helper'>No workflow results yet. Run QAFlow to generate results.</p>";return;}
+  const selected=activeKey||keys[keys.length-1];
+  keys.forEach(k=>{
+    const tab=document.createElement("button"); tab.className="tab "+(k===selected?"active":""); tab.innerText=all[k].label; tab.onclick=()=>renderStepResults(k); tabs.appendChild(tab);
+    const card=document.createElement("div"); card.className="result "+(k===selected?"active":""); card.innerHTML=`<h3>${all[k].label}</h3><pre>${escapeHtml(all[k].result)}</pre>`; out.appendChild(card);
+  });
+}
+
+function getFinalQaReportText(){
+  const all = JSON.parse(localStorage.getItem("qaflow_results") || "{}");
+  if(all.qaReport && all.qaReport.result) return all.qaReport.result;
+  if(all.approvalRequest && all.approvalRequest.result) return all.approvalRequest.result;
+
+  const keys = Object.keys(all);
+  if(keys.length){
+    const latest = all[keys[keys.length - 1]];
+    return latest.result || "";
+  }
+
+  return document.getElementById("output")?.innerText || "";
+}
+
+function downloadFinalQaReportPdf(){
+  const reportText = getFinalQaReportText().trim();
+
+  if(!reportText || reportText === "Click “Run / Continue QAFlow” to start."){
+    return show("No QA report is available yet. Generate the Final QA Report first, then download the PDF.");
+  }
+
+  const title = (document.getElementById("title")?.value || "QAFlow Final QA Report").trim();
+  const safeTitle = title.replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "").slice(0, 60) || "QAFlow_Final_QA_Report";
+  const timestamp = new Date().toLocaleString();
+
+  if(!window.jspdf || !window.jspdf.jsPDF){
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`<html><head><title>${escapeHtml(title)}</title></head><body><h1>${escapeHtml(title)}</h1><p>${escapeHtml(timestamp)}</p><pre style="white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;line-height:1.5">${escapeHtml(reportText)}</pre></body></html>`);
+    printWindow.document.close();
+    printWindow.print();
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const margin = 40;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const maxWidth = pageWidth - margin * 2;
+  let y = margin;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  const titleLines = doc.splitTextToSize("QAFlow Final QA Report", maxWidth);
+  doc.text(titleLines, margin, y);
+  y += titleLines.length * 18 + 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text(`Requirement: ${title}`, margin, y);
+  y += 14;
+  doc.text(`Generated: ${timestamp}`, margin, y);
+  y += 22;
+
+  doc.setFontSize(11);
+  const lines = doc.splitTextToSize(reportText, maxWidth);
+
+  for(const line of lines){
+    if(y > pageHeight - margin){
+      doc.addPage();
+      y = margin;
+    }
+    doc.text(line, margin, y);
+    y += 14;
+  }
+
+  doc.save(`${safeTitle}_QA_Report.pdf`);
+  show("Final QA Report PDF downloaded.");
+}
+
+function escapeHtml(text){return String(text).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+
+renderWorkflow(); renderStepResults(); renderHumanReviewPanels();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+name: "qaflow-agent-runtime"
+acli_version: "0.2.1"
+agent_directory: "qaflow"
+region: "us-central1"
+base_template: "local_qaflow-agent"
+generated_at: "2026-05-29T19:30:05.041641+00:00"
+language: "python"
+create_params:
+  deployment_target: "agent_runtime"
+  session_type: "none"
+  cicd_runner: "skip"
+  include_data_ingestion: false
+  
+  datastore: "none"
+  agent_guidance_filename: "GEMINI.md"

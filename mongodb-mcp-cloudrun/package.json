@@ -1,0 +1,11 @@
+{
+  "name": "mongodb-mcp-cloudrun",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "mongodb-mcp-server --transport http --httpHost=0.0.0.0 --httpPort=8080"
+  },
+  "dependencies": {
+    "mongodb-mcp-server": "latest"
+  }
+}

@@ -1,0 +1,80 @@
+openapi: 3.0.0
+info:
+  title: QAFlow Agent API
+  description: API for Google Cloud Agent Builder to call QAFlow Agent workflow backed by Google ADK, Gemini, and MongoDB MCP.
+  version: 1.0.0
+
+servers:
+  - url: https://qaflow-agent-512657306508.us-central1.run.app
+
+paths:
+  /api/agent-builder/health:
+    get:
+      operationId: checkQAFlowAgentHealth
+      summary: Check QAFlow Agent Builder integration health
+      responses:
+        "200":
+          description: QAFlow Agent health response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  app:
+                    type: string
+                  integration:
+                    type: string
+                  default_agent:
+                    type: string
+                  default_model:
+                    type: string
+                  dynamic_model_supported:
+                    type: boolean
+                  endpoint:
+                    type: string
+
+  /api/agent-builder/run:
+    post:
+      operationId: runQAFlowAgent
+      summary: Run QAFlow Agent workflow request
+      description: Sends a QA workflow request to QAFlow Agent. The backend uses Google ADK, Gemini, and MongoDB MCP to process the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_request
+              properties:
+                user_request:
+                  type: string
+                  description: User request or QA workflow instruction.
+                  example: Run requirement gap analysis for the provided requirement.
+                model:
+                  type: string
+                  description: Gemini model name. Use gemini-2.5-flash for stable demos.
+                  default: gemini-2.5-flash
+                  example: gemini-2.5-flash
+      responses:
+        "200":
+          description: QAFlow Agent response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  session_id:
+                    type: string
+                  model:
+                    type: string
+                  response:
+                    type: string
+                  error:
+                    type: string
+                  details:
+                    type: string
