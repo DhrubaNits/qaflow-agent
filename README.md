@@ -10,6 +10,33 @@ QAFlow was built for the **MongoDB partner track**. MongoDB is not only used as 
 
 ---
 
+## Required Technology Proof
+
+QAFlow uses all required technologies at runtime:
+
+| Requirement | Where it is used | Proof in code |
+|---|---|---|
+| Gemini | Powers QA agent reasoning for requirement analysis, test generation, triage, and release readiness | `qaflow/agent.py` |
+| Google ADK / Agent Builder | Defines and runs the QAFlow agent workflow | `qaflow/agent.py` |
+| Google Agent Runtime | Deploys the ADK agent as a managed agent runtime | `qaflow/agent_runtime_app.py`, `qaflow/agent_engine_entry.py` |
+| MongoDB MCP | Connects the agent to MongoDB for saving and retrieving QA workflow artifacts | `mongodb-mcp-cloudrun/`, `MONGODB_MCP_URL` |
+| MongoDB Atlas | Stores QA artifacts as persistent memory and RAG context | `qaflow.qa_analyses` collection |
+| Google Cloud Run | Hosts the QAFlow web app, backend APIs, and MongoDB MCP service | Cloud Run deployment |
+| Secret Manager | Stores MongoDB connection string securely | Cloud Run environment/secret config |
+
+Runtime flow:
+
+```text
+QAFlow Web App on Cloud Run
+    -> Gemini + Google ADK Agent
+    -> Google Agent Runtime
+    -> MongoDB MCP service on Cloud Run
+    -> MongoDB Atlas qaflow.qa_analyses
+```
+
+
+
+
 ## Demo
 
 Hosted App URL:
