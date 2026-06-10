@@ -9,6 +9,16 @@ uv tool install google-agents-cli
 
 ---
 
+## Project Context
+
+QAFlow Agent is an AI-powered human-in-the-loop QA workflow assistant.
+
+The agent supports the QA lifecycle from requirement intake to release readiness, including requirement gap analysis, test scenario generation, test case writing, peer review, risk and coverage analysis, failure triage, fix recommendation, release readiness, and final QA reporting.
+
+The project uses Gemini, Google ADK, Google Cloud Run, Google Agent Runtime, MongoDB MCP, MongoDB Atlas, and Google Secret Manager.
+
+MongoDB MCP is used as the persistent QA memory and RAG layer. QAFlow stores requirements, gap analysis, test scenarios, test cases, peer review notes, execution summaries, release readiness, and final reports in MongoDB Atlas.
+
 ## Development Phases
 
 ### Phase 1: Understand Requirements
